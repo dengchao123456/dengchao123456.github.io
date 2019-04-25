@@ -68,7 +68,7 @@
 
 
 
-  <meta name="keywords" content="MySQL,事务,begin,">
+  <meta name="keywords" content="MySQL,delete,limit,锁,">
 
 
 
@@ -79,18 +79,22 @@
 
 
 
-<meta name="description" content="摘要： MySQL 这样一个事务引擎和非事务引擎共存的数据库系统，事务真的是从 begin 开始的吗？">
-<meta name="keywords" content="MySQL,事务,begin">
+<meta name="description" content="摘要：limit 对 delete 语句运行过程中最大的影响是什么?">
+<meta name="keywords" content="MySQL,delete,limit,锁">
 <meta property="og:type" content="article">
-<meta property="og:title" content="事务是从 begin 开始的吗">
-<meta property="og:url" content="http://yoursite.com/2019/04/23/1/index.html">
+<meta property="og:title" content="为什么有规范说 delete 语句要加 limit">
+<meta property="og:url" content="http://yoursite.com/2019/04/25/3/index.html">
 <meta property="og:site_name">
-<meta property="og:description" content="摘要： MySQL 这样一个事务引擎和非事务引擎共存的数据库系统，事务真的是从 begin 开始的吗？">
+<meta property="og:description" content="摘要：limit 对 delete 语句运行过程中最大的影响是什么?">
 <meta property="og:locale" content="zh-Hans">
-<meta property="og:updated_time" content="2019-04-23T14:50:08.977Z">
+<meta property="og:image" content="http://yoursite.com/2019/04/25/3/1.jpg">
+<meta property="og:image" content="http://yoursite.com/2019/04/25/3/2.jpg">
+<meta property="og:image" content="http://yoursite.com/2019/04/25/3/3.jpg">
+<meta property="og:updated_time" content="2019-04-25T01:42:33.639Z">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="事务是从 begin 开始的吗">
-<meta name="twitter:description" content="摘要： MySQL 这样一个事务引擎和非事务引擎共存的数据库系统，事务真的是从 begin 开始的吗？">
+<meta name="twitter:title" content="为什么有规范说 delete 语句要加 limit">
+<meta name="twitter:description" content="摘要：limit 对 delete 语句运行过程中最大的影响是什么?">
+<meta name="twitter:image" content="http://yoursite.com/2019/04/25/3/1.jpg">
 
 
 
@@ -120,13 +124,13 @@
 
 
 
-  <link rel="canonical" href="http://yoursite.com/2019/04/23/1/">
+  <link rel="canonical" href="http://yoursite.com/2019/04/25/3/">
 
 
 
 
 
-  <title>事务是从 begin 开始的吗 | </title>
+  <title>为什么有规范说 delete 语句要加 limit | </title>
   
 
 
@@ -243,7 +247,7 @@
   
   
   <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/04/23/1/">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/04/25/3/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="name" content="大葱">
@@ -260,7 +264,7 @@
 
         
         
-          <h1 class="post-title" itemprop="name headline">事务是从 begin 开始的吗</h1>
+          <h1 class="post-title" itemprop="name headline">为什么有规范说 delete 语句要加 limit</h1>
         
 
         <div class="post-meta">
@@ -272,8 +276,8 @@
               
                 <span class="post-meta-item-text">发表于</span>
               
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-04-23T22:18:41+08:00">
-                2019-04-23
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-04-25T09:28:48+08:00">
+                2019-04-25
               </time>
             
 
@@ -291,8 +295,8 @@
                 <span class="post-meta-item-icon">
                   <i class="fa fa-comment-o"></i>
                 </span>
-                <a href="/2019/04/23/1/#comments" itemprop="discussionUrl">
-                  <span class="post-comments-count valine-comment-count" data-xid="/2019/04/23/1/" itemprop="commentCount"></span>
+                <a href="/2019/04/25/3/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count valine-comment-count" data-xid="/2019/04/25/3/" itemprop="commentCount"></span>
                 </a>
               </span>
             
@@ -319,7 +323,7 @@
                   <span class="post-meta-item-text">字数统计&#58;</span>
                 
                 <span title="字数统计">
-                  704 字
+                  911 字
                 </span>
               
 
@@ -335,7 +339,7 @@
                   <span class="post-meta-item-text">阅读时长 &asymp;</span>
                 
                 <span title="阅读时长">
-                  2 分钟
+                  3 分钟
                 </span>
               
             </div>
@@ -357,68 +361,75 @@
 
       
         <blockquote>
-<p>摘要： MySQL 这样一个事务引擎和非事务引擎共存的数据库系统，事务真的是从 begin 开始的吗？</p>
+<p>摘要：limit 对 delete 语句运行过程中最大的影响是什么?</p>
 </blockquote>
-<a id="more"></a> 
-<p>在 MySQL 中有一个系统变量 autocommit ，当其设置为 1 ，则对表的所有更改都会立即生效，也就是常说的“自动提交”，这也是 5.7 版本中默认的值。如果我们不想让语句自动提交，一般会采用 begin （或 start transaction ）来显示开始一个事务。那大家有没有想过：像 MySQL 这样一个事务引擎和非事务引擎共存的数据库系统，事务真的是从 begin 开始的吗？</p>
-<p>SQL 标准的事务隔离级别包括：读未提交（read uncommitted）、读提交（read committed）、可重复读（repeatable read）和串行化（serializable）。其中可重复读和串行化是完全符合事务 ACID （Atomicity、Consistency、Isolation、Durability，即原子性、一致性、隔离性、持久性）四要素的。可重复读是指，一个事务执行过程中看到的数据，总是跟这个事务在启动时看到的数据是一致的。</p>
-<p>接下来我们可以在<strong>可重复读事务隔离级别</strong>下做一个小测试，来验证下事务是否是从 begin 开始的。</p>
-<p>先创建测试用表 t1 和 t2：</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line">CREATE TABLE `t1` (</span><br><span class="line">`id`  int NOT NULL ,</span><br><span class="line">`a`  int NULL ,</span><br><span class="line">PRIMARY KEY (`id`)</span><br><span class="line">)</span><br><span class="line">ENGINE=InnoDB</span><br><span class="line">;</span><br><span class="line"></span><br><span class="line">CREATE TABLE `t2` (</span><br><span class="line">`id`  int NOT NULL ,</span><br><span class="line">`a`  int NULL ,</span><br><span class="line">PRIMARY KEY (`id`)</span><br><span class="line">)</span><br><span class="line">ENGINE=MyISAM</span><br><span class="line">;</span><br><span class="line"></span><br><span class="line">insert into t1 values (1,1);</span><br><span class="line">insert into t1 values (2,2);</span><br><span class="line"></span><br><span class="line">insert into t2 values (1,1);</span><br><span class="line">insert into t2 values (2,2);</span><br></pre></td></tr></table></figure>
-<p>下面是测试过程：</p>
+<a id="more"></a>
+<p>相信不少公司数据库相关规范里都有这样一条：delete 语句要加 limit。不知你是否曾经对此有所疑惑。当新入职的实习生就此向你请教原因时，你又该如何回答呢？是网传某某大公司的多少多少条数据库运维军规里就有这样的规定，还是仅仅为了减少误操作造成的损失？如果加不加 limit 都不影响 delete 的行数，那这个规定的作用又是什么呢？</p>
+<p>其实这个问题的本质是：<strong>limit 对 delete 语句运行过程中最大的影响是什么</strong>。接下来我们可以做个对比测试来观察一下。</p>
+<p>先创建测试用表，插入测试数据。下面的测试一和测试二都是在此基础上进行测试，并且都使用<strong>可重复读事务隔离级别</strong>。<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line">CREATE TABLE `t1` (</span><br><span class="line">`id`  int NOT NULL ,</span><br><span class="line">`a`  int NULL ,</span><br><span class="line">`b`  int NULL ,</span><br><span class="line">PRIMARY KEY (`id`),</span><br><span class="line">KEY `idx_a` (`a`)</span><br><span class="line">)</span><br><span class="line">ENGINE=InnoDB</span><br><span class="line">;</span><br><span class="line"></span><br><span class="line">insert into t1 values (1,1,1);</span><br><span class="line">insert into t1 values (5,5,5);</span><br><span class="line">insert into t1 values (8,8,8);</span><br><span class="line">insert into t1 values (10,8,10);</span><br><span class="line">insert into t1 values (15,8,15);</span><br><span class="line">insert into t1 values (19,19,19);</span><br></pre></td></tr></table></figure></p>
+<p>测试一：</p>
 <table>
 <thead>
 <tr>
 <th>session 1</th>
 <th>session 2</th>
+<th>session 3</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td>begin;</td>
+<td>begin;<br>delete from t1 where a=8;</td>
+<td></td>
 <td></td>
 </tr>
 <tr>
 <td></td>
-<td>update t2 set a=3 where id=2;/*U1*/</td>
-</tr>
-<tr>
-<td>select * from t2; /*Q1*/</td>
+<td>insert into t1 values (6,6,6);<br>(被阻塞)</td>
 <td></td>
 </tr>
 <tr>
 <td></td>
-<td>update t1 set a=4 where id=2;/*U2*/</td>
-</tr>
-<tr>
-<td>select * from t1; /*Q2*/</td>
 <td></td>
-</tr>
-<tr>
-<td></td>
-<td>update t1 set a=5 where id=2;/*U3*/</td>
-</tr>
-<tr>
-<td>select * from t1; /*Q3*/</td>
-<td></td>
-</tr>
-<tr>
-<td>commit;</td>
-<td></td>
+<td>insert into t1 values (17,17,17);<br>(被阻塞)</td>
 </tr>
 </tbody>
 </table>
-<p>Q1 结果：</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">mysql&gt; select * from t2;</span><br><span class="line">+----+------+</span><br><span class="line">| id | a    |</span><br><span class="line">+----+------+</span><br><span class="line">|  1 |    1 |</span><br><span class="line">|  2 |    3 |</span><br><span class="line">+----+------+</span><br><span class="line">2 rows in set (0.00 sec)</span><br></pre></td></tr></table></figure>
-<p>session 1 的 begin 语句是在 session 2 的 U1 之前，但 Q1 还是看见了 U1 的更改，说明 session 1 的事物在 Q1 之前还未真正开始。</p>
-<p>Q2 结果：</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">mysql&gt; select * from t1;</span><br><span class="line">+----+------+</span><br><span class="line">| id | a    |</span><br><span class="line">+----+------+</span><br><span class="line">|  1 |    1 |</span><br><span class="line">|  2 |    4 |</span><br><span class="line">+----+------+</span><br><span class="line">2 rows in set (0.00 sec)</span><br></pre></td></tr></table></figure>
-<p>Q2 看见了 U2 的更改，说明 session 1 的事物在 Q2 之前也还未真正开始。</p>
-<p>Q3 结果：</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">mysql&gt; select * from t1;</span><br><span class="line">+----+------+</span><br><span class="line">| id | a    |</span><br><span class="line">+----+------+</span><br><span class="line">|  1 |    1 |</span><br><span class="line">|  2 |    4 |</span><br><span class="line">+----+------+</span><br><span class="line">2 rows in set (0.00 sec)</span><br></pre></td></tr></table></figure>
-<p>Q3 并未看见 U3 的更改，说明 session 1 的事物已经真正开始。Q3 和 Q2 结果一致，说明该事物是从 Q2 开始的。</p>
-<p>多测试几次，就会发现：<strong>begin/start transaction 命令并不是一个事务的起点，在执行到它们之后的第一个操作 InnoDB 表的语句，事务才真正启动。</strong></p>
-<p>如果你想马上启动一个事务，那是不是要 begin 后立马加一个操作 InnoDB 表的语句呢？其实也不用这么麻烦，<strong>start transaction with consistent snapshot</strong> 命令了解一下。</p>
+<p>测试二：</p>
+<table>
+<thead>
+<tr>
+<th>session 1</th>
+<th>session 2</th>
+<th>session 3</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>begin;<br>delete from t1 where a=8 limit 3;</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td></td>
+<td>insert into t1 values (6,6,6);<br>(被阻塞)</td>
+<td></td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td>insert into t1 values (17,17,17);<br>(成功)</td>
+</tr>
+</tbody>
+</table>
+<p>在表 t1 中符合 a=8 的数据行就 3 行，两次测试中 session 1 的 delete 语句的执行结果肯定是相同的。但对比下两次测试中的 session 3，就会发现两个 delete 语句执行过程中的影响是不同的。为什么会出现这种情况呢？为了说明这个问题，我们先看下索引 idx_a 的叶子节点的情况。</p>
+<img src="/2019/04/25/3/1.jpg" title="图（1）">
+<p>idx_a 是二级索引，索引记录里包含了 a 列的值以及该行的主键 id 的值。我们不仅要关注索引记录，还要注意到记录之间的“间隙”。“间隙”也是可以被加锁的实体。</p>
+<p>在测试一中，session 1 在遍历的时候，先访问到第一个 a=8 的记录，也就是(a=8,id=8)，要在这里加 next-key lock，会锁住从(a=5,id=5)到(a=8,id=8)前开后闭区间。接着，session 1 继续向右查找，直到(a=19,id=19),判断出 a 值已不符合条件，循环结束。因为是等值查找，在记录(a=19,id=19)这里加的是 gap 锁而不是 nexit-key lock，锁住的只是从(a=8,id=15)到(a=19,id=19)之间的“间隙”。最终 delete 语句在索引 idx_a 上的加索范围是从(a=5,id=5)到(a=19,id=19)前开后开区间。就是下图绿框的部分。</p>
+<img src="/2019/04/25/3/2.jpg" title="图（2）">
+<p>在测试二中，session 1 的 delete 语句加了 limit 3。不影响删除的行数，但 session 1 在遍历到(a=8,id=15)时，满足 a=8 条件的行数已经有 3 条，循环就此结束。因此，索引 idx_a 的加锁范围就变成了从(a=5,id=5)到(a=8,id=15)的前开后闭区间，如下图所示：</p>
+<img src="/2019/04/25/3/3.jpg" title="图（3）">
+<p>现在，你明白了测试一和测试二中，session 3 执行结果不同的原因了吧。</p>
+<p>limit 可以影响 delete 语句执行过程中遍历索引的记录数，进而影响加锁的范围。使用得当，可以提高并发度。我认为这才是 delete 语句要加 limit 规定的主要原因。</p>
 
       
     </div>
@@ -438,9 +449,11 @@
           
             <a href="/tags/MySQL/" rel="tag"># MySQL</a>
           
-            <a href="/tags/事务/" rel="tag"># 事务</a>
+            <a href="/tags/delete/" rel="tag"># delete</a>
           
-            <a href="/tags/begin/" rel="tag"># begin</a>
+            <a href="/tags/limit/" rel="tag"># limit</a>
+          
+            <a href="/tags/锁/" rel="tag"># 锁</a>
           
         </div>
       
@@ -453,15 +466,15 @@
         <div class="post-nav">
           <div class="post-nav-next post-nav-item">
             
+              <a href="/2019/04/24/2/" rel="next" title="新值和原值相同，update 还会更新吗">
+                <i class="fa fa-chevron-left"></i> 新值和原值相同，update 还会更新吗
+              </a>
+            
           </div>
 
           <span class="post-nav-divider"></span>
 
           <div class="post-nav-prev post-nav-item">
-            
-              <a href="/2019/04/24/2/" rel="prev" title="新值和原值相同，update 还会更新吗">
-                新值和原值相同，update 还会更新吗 <i class="fa fa-chevron-right"></i>
-              </a>
             
           </div>
         </div>
