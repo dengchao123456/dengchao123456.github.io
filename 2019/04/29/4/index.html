@@ -68,7 +68,7 @@
 
 
 
-  <meta name="keywords" content="MySQL,update,">
+  <meta name="keywords" content="MySQL,flashback,闪回,">
 
 
 
@@ -79,18 +79,18 @@
 
 
 
-<meta name="description" content="摘要：MySQL 怎么会这么“笨”呢？">
-<meta name="keywords" content="MySQL,update">
+<meta name="description" content="摘要：我劝你在学习更多技能之前，还是先治疗下“手抖”吧。">
+<meta name="keywords" content="MySQL,flashback,闪回">
 <meta property="og:type" content="article">
-<meta property="og:title" content="新值和原值相同，update 还会更新吗">
-<meta property="og:url" content="http://yoursite.com/2019/04/24/2/index.html">
+<meta property="og:title" content="误删数据了怎么办">
+<meta property="og:url" content="http://yoursite.com/2019/04/29/4/index.html">
 <meta property="og:site_name">
-<meta property="og:description" content="摘要：MySQL 怎么会这么“笨”呢？">
+<meta property="og:description" content="摘要：我劝你在学习更多技能之前，还是先治疗下“手抖”吧。">
 <meta property="og:locale" content="zh-Hans">
-<meta property="og:updated_time" content="2019-04-26T06:33:52.413Z">
+<meta property="og:updated_time" content="2019-04-29T09:14:32.249Z">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="新值和原值相同，update 还会更新吗">
-<meta name="twitter:description" content="摘要：MySQL 怎么会这么“笨”呢？">
+<meta name="twitter:title" content="误删数据了怎么办">
+<meta name="twitter:description" content="摘要：我劝你在学习更多技能之前，还是先治疗下“手抖”吧。">
 
 
 
@@ -120,13 +120,13 @@
 
 
 
-  <link rel="canonical" href="http://yoursite.com/2019/04/24/2/">
+  <link rel="canonical" href="http://yoursite.com/2019/04/29/4/">
 
 
 
 
 
-  <title>新值和原值相同，update 还会更新吗 | </title>
+  <title>误删数据了怎么办 | </title>
   
 
 
@@ -243,7 +243,7 @@
   
   
   <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/04/24/2/">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/04/29/4/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="name" content="大葱">
@@ -260,7 +260,7 @@
 
         
         
-          <h1 class="post-title" itemprop="name headline">新值和原值相同，update 还会更新吗</h1>
+          <h1 class="post-title" itemprop="name headline">误删数据了怎么办</h1>
         
 
         <div class="post-meta">
@@ -272,8 +272,8 @@
               
                 <span class="post-meta-item-text">发表于</span>
               
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-04-24T21:02:48+08:00">
-                2019-04-24
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-04-29T16:49:02+08:00">
+                2019-04-29
               </time>
             
 
@@ -291,8 +291,8 @@
                 <span class="post-meta-item-icon">
                   <i class="fa fa-comment-o"></i>
                 </span>
-                <a href="/2019/04/24/2/#comments" itemprop="discussionUrl">
-                  <span class="post-comments-count valine-comment-count" data-xid="/2019/04/24/2/" itemprop="commentCount"></span>
+                <a href="/2019/04/29/4/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count valine-comment-count" data-xid="/2019/04/29/4/" itemprop="commentCount"></span>
                 </a>
               </span>
             
@@ -319,7 +319,7 @@
                   <span class="post-meta-item-text">字数统计&#58;</span>
                 
                 <span title="字数统计">
-                  711 字
+                  765 字
                 </span>
               
 
@@ -335,7 +335,7 @@
                   <span class="post-meta-item-text">阅读时长 &asymp;</span>
                 
                 <span title="阅读时长">
-                  2 分钟
+                  3 分钟
                 </span>
               
             </div>
@@ -357,131 +357,33 @@
 
       
         <blockquote>
-<p>摘要：MySQL 怎么会这么“笨”呢？</p>
+<p>摘要：我劝你在学习更多技能之前，还是先治疗下“手抖”吧。</p>
 </blockquote>
 <a id="more"></a>
-<p>假如你有这样一张表：</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">CREATE TABLE `t1` (</span><br><span class="line">`id`  int NOT NULL ,</span><br><span class="line">`a`  int NULL ,</span><br><span class="line">PRIMARY KEY (`id`)</span><br><span class="line">)</span><br><span class="line">ENGINE=InnoDB</span><br><span class="line">;</span><br><span class="line"></span><br><span class="line">insert into t1 values (1,1);</span><br></pre></td></tr></table></figure>
-<p>你需要做如下更新：</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">update t1 set a=1 where id=1;</span><br></pre></td></tr></table></figure>
-<p>那么问题来了，MySQL 会真的去执行一次修改吗？还是看到值相同就直接返回呢？</p>
-<p>我们知道，在可重复读事务隔离级别下，事务只能看见自己的更改，我们可以借用这个特性，做一个小测试。</p>
-<h4 id="第一次测试"><a href="#第一次测试" class="headerlink" title="第一次测试"></a>第一次测试</h4><p>前提条件：binlog_format=STATEMENT</p>
-<p>测试过程：</p>
-<table>
-<thead>
-<tr>
-<th>session 1</th>
-<th>session 2</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>begin;</td>
-<td></td>
-</tr>
-<tr>
-<td>select * from t1;<br>结果：（1，1）</td>
-<td></td>
-</tr>
-<tr>
-<td></td>
-<td>update t1  set a=2 where id=1;</td>
-</tr>
-<tr>
-<td>update t1  set a=2 where id=1;</td>
-<td></td>
-</tr>
-<tr>
-<td>select * from t1;<br>结果：（1，2）</td>
-<td></td>
-</tr>
-<tr>
-<td>commit;</td>
-<td></td>
-</tr>
-</tbody>
-</table>
-<p>session 1 第二次查询的结果是（1，2），显然这看见的只能是事务自己的更改，虽然 session 1 在执行 update 语句时，要更新的 a 值已经是 2 了，但 MySQL 还是认真的去执行了一次 update。MySQL 怎么会这么“笨”呢？更改之前没有判断的吗？我们改变下前提条件，再来测试一次。</p>
-<h4 id="第二次测试"><a href="#第二次测试" class="headerlink" title="第二次测试"></a>第二次测试</h4><p>前提条件：binlog_format=STATEMENT ，并给表 t1 增加一个列：</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ALTER TABLE `t1` ADD COLUMN `b`  timestamp NULL ON UPDATE CURRENT_TIMESTAMP;</span><br></pre></td></tr></table></figure>
-<p>测试过程：</p>
-<table>
-<thead>
-<tr>
-<th>session 1</th>
-<th>session 2</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>begin;</td>
-<td></td>
-</tr>
-<tr>
-<td>select * from t1;<br>结果：（1，2，NULL）</td>
-<td></td>
-</tr>
-<tr>
-<td></td>
-<td>update t1  set a=3 where id=1;</td>
-</tr>
-<tr>
-<td>update t1  set a=3 where id=1;</td>
-<td></td>
-</tr>
-<tr>
-<td>select * from t1;<br>结果：（1，2，NULL）</td>
-<td></td>
-</tr>
-<tr>
-<td>commit;</td>
-<td></td>
-</tr>
-</tbody>
-</table>
-<p>session 1 的第二次查询结果和第一次查询一致，session 1 update 语句并没有真正执行。这次 MySQL 怎么又变“聪明”了呢？我们再来一次测试。</p>
-<h4 id="第三次测试"><a href="#第三次测试" class="headerlink" title="第三次测试"></a>第三次测试</h4><p>前提条件：binlog_format=ROW，binlog_row_image=full，使用之前没有 b 列的表结构。</p>
-<p>测试过程：</p>
-<table>
-<thead>
-<tr>
-<th>session 1</th>
-<th>session 2</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>begin;</td>
-<td></td>
-</tr>
-<tr>
-<td>select * from t1;<br>结果：（1，1）</td>
-<td></td>
-</tr>
-<tr>
-<td></td>
-<td>update t1  set a=2 where id=1;</td>
-</tr>
-<tr>
-<td>update t1  set a=2 where id=1;</td>
-<td></td>
-</tr>
-<tr>
-<td>select * from t1;<br>结果：（1，1）</td>
-<td></td>
-</tr>
-<tr>
-<td>commit;</td>
-<td></td>
-</tr>
-</tbody>
-</table>
-<p>这次测试过程和第一次测试过程一致，但结果不同。这次 MySQL 表现的似乎比第一次“聪明”，为什么呢？</p>
-<h4 id="小结"><a href="#小结" class="headerlink" title="小结"></a>小结</h4><p>其实 MySQL 在做 update 操作时是做了判断了的，只是判断的前提是要能先读出更新字段的值。</p>
-<p>在第一次测试中，根据“innoDB 只读必要数据”的原则，MySQL 认为读出来的值只有一个确定的(id=1)，而要写的是(a=2)，只从这两个信息是看不出来“不需要修改”的。</p>
-<p>第二次测试中，表 t1 中有 timestamp 字段且设置了自动更新，那么更新“别的字段”的时候，MySQL 会读入所有涉及的字段，这样就可以判断出不需要修改。</p>
-<p>第三次测试，binlog_format 的值为 row，binlog_row_image 的值为 full，由于 MySQL 需要在 binlog 里面记录所有字段，所以在读的时候就会把数据读出，当然就可以判断了。</p>
+<p>今天来说一个 DBA 比较讨厌的问题：误删数据了怎么办。你一定会想到传统的恢复方式：全备 + binlog 前滚。那还有没有更快速、简单、灵活的方式呢？今天我就来介绍一个。</p>
+<p>MariaDB 从 10.2.4 开始引入了 DML-only flashback 功能，这就是今天的主角。我知道你可能会问：我用的是 MySQL 啊，难道要先迁移到 MariaDB 吗？不不不，DML-only flashback 功能是在工具 mysqlbinlog 里的，只需要把 MariaDB 安装目录下的 /bin/mysqlbinlog 文件复制过来，覆盖掉 MySQL 安装目录下的 /bin/mysqlbinlog 即可。好了，现在执行下 <code>mysqlbinlog --help</code> ，有没有发现多了如下选项：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">-B, --flashback     Flashback feature can rollback you committed data to a special time point.</span><br></pre></td></tr></table></figure>
+<p>该选项要如何使用呢？首先得满足两个前提：</p>
+<ol>
+<li>binlog_format=ROW，binlog_row_image=FULL；</li>
+<li>目前仅支持DML语句（INSERT，DELETE，UPDATE）。</li>
+</ol>
+<p>为什么要满足前提 1 呢？因为只有这样，binlog 里面才会记录被删掉行的整行信息，这是找回数据的关键。DML-only flashback 功能就是利用这些信息，把 delete 转成 insert，把误删的数据插入回去。</p>
+<p>接下来，通过一个例子，来看看使用效果。先创建测试用表，并插入测试用数据：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">CREATE TABLE `t1` (</span><br><span class="line">`id`  int NOT NULL ,</span><br><span class="line">`a`  int NULL ,</span><br><span class="line">PRIMARY KEY (`id`)</span><br><span class="line">)</span><br><span class="line">ENGINE=InnoDB</span><br><span class="line">;</span><br><span class="line"></span><br><span class="line">insert into t1 values (1,3);</span><br><span class="line">insert into t1 values (2,3);</span><br><span class="line">insert into t1 values (3,3);</span><br><span class="line">insert into t1 values (4,30);</span><br><span class="line">insert into t1 values (5,30);</span><br><span class="line">insert into t1 values (6,30);</span><br></pre></td></tr></table></figure>
+<p>本来想删除 a=30 的数据的，没想到小手一抖，少输入了一个 0，结果：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">mysql&gt; delete from t1 where a=3;</span><br><span class="line">Query OK, 3 rows affected (0.01 sec)</span><br><span class="line"></span><br><span class="line">mysql&gt; select * from t1;</span><br><span class="line">+----+------+</span><br><span class="line">| id | a    |</span><br><span class="line">+----+------+</span><br><span class="line">|  4 |   30 |</span><br><span class="line">|  5 |   30 |</span><br><span class="line">|  6 |   30 |</span><br><span class="line">+----+------+</span><br><span class="line">3 rows in set (0.00 sec)</span><br></pre></td></tr></table></figure>
+<p>别慌，赶紧查看下最新的 binlog，找到误操作语句的 Pos：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">mysql&gt; show binlog events in &apos;localhost-bin.000001&apos;;</span><br><span class="line">+----------------------+-----+----------------+-----------+-------------+---------------------------------------+</span><br><span class="line">| Log_name             | Pos | Event_type     | Server_id | End_log_pos | Info                                  |</span><br><span class="line">+----------------------+-----+----------------+-----------+-------------+---------------------------------------+</span><br><span class="line">| ...                  | ... | ...            |       ... |         ... |                                       |</span><br><span class="line">| localhost-bin.000001 | 154 | Anonymous_Gtid |         1 |         219 | SET @@SESSION.GTID_NEXT= &apos;ANONYMOUS&apos;  |</span><br><span class="line">| localhost-bin.000001 | 219 | Query          |         1 |         293 | BEGIN                                 |</span><br><span class="line">| localhost-bin.000001 | 293 | Table_map      |         1 |         341 | table_id: 114 (testdb.t1)             |</span><br><span class="line">| localhost-bin.000001 | 341 | Delete_rows    |         1 |         403 | table_id: 114 flags: STMT_END_F       |</span><br><span class="line">| localhost-bin.000001 | 403 | Xid            |         1 |         434 | COMMIT /* xid=169 */                  |</span><br><span class="line">+----------------------+-----+----------------+-----------+-------------+---------------------------------------+</span><br></pre></td></tr></table></figure>
+<p>然后，就轮到今天的主角上场了：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"># mysqlbinlog localhost-bin.000001 -d testdb -T t1 --start-position=154 --flashback &gt; flashback.sql</span><br></pre></td></tr></table></figure>
+<p>然后，通过执行 flashback.sql，就可以将表 t1 闪回到“手抖”之前的位置了。</p>
+<p>执行过程中会遇到如下报错，不用担心，这是因为 check_constraint_checks 是 MariaDB 里的参数，MySQL 里没有，并不影响闪回结果。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">ERROR 1193 (HY000): Unknown system variable &apos;check_constraint_checks&apos;</span><br><span class="line">Query OK, 0 rows affected (0.00 sec)</span><br></pre></td></tr></table></figure>
+<p>查看一下表 t1，a=3 的数据是不是又回来了呢？</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">mysql&gt; select * from t1;</span><br><span class="line">+----+------+</span><br><span class="line">| id | a    |</span><br><span class="line">+----+------+</span><br><span class="line">|  1 |    3 |</span><br><span class="line">|  2 |    3 |</span><br><span class="line">|  3 |    3 |</span><br><span class="line">|  4 |   30 |</span><br><span class="line">|  5 |   30 |</span><br><span class="line">|  6 |   30 |</span><br><span class="line">+----+------+</span><br><span class="line">6 rows in set (0.00 sec)</span><br></pre></td></tr></table></figure>
+<p>如果你知道确切的时间，也可以用 <code>--start-datetime</code> 来代替 <code>--start-position</code>。想了解更多，请查看<a href="https://mariadb.com/kb/en/library/flashback/" target="_blank" rel="noopener"><font color="#0000dd">官方文档</font></a>。</p>
+<p>不过，我劝你在学习更多技能之前，还是先治疗下“手抖”吧。</p>
 
       
     </div>
@@ -501,7 +403,9 @@
           
             <a href="/tags/MySQL/" rel="tag"># MySQL</a>
           
-            <a href="/tags/update/" rel="tag"># update</a>
+            <a href="/tags/flashback/" rel="tag"># flashback</a>
+          
+            <a href="/tags/闪回/" rel="tag"># 闪回</a>
           
         </div>
       
@@ -514,8 +418,8 @@
         <div class="post-nav">
           <div class="post-nav-next post-nav-item">
             
-              <a href="/2019/04/23/1/" rel="next" title="事务是从 begin 开始的吗">
-                <i class="fa fa-chevron-left"></i> 事务是从 begin 开始的吗
+              <a href="/2019/04/25/3/" rel="next" title="为什么有规范说 delete 语句要加 limit">
+                <i class="fa fa-chevron-left"></i> 为什么有规范说 delete 语句要加 limit
               </a>
             
           </div>
@@ -523,10 +427,6 @@
           <span class="post-nav-divider"></span>
 
           <div class="post-nav-prev post-nav-item">
-            
-              <a href="/2019/04/25/3/" rel="prev" title="为什么有规范说 delete 语句要加 limit">
-                为什么有规范说 delete 语句要加 limit <i class="fa fa-chevron-right"></i>
-              </a>
             
           </div>
         </div>
@@ -581,17 +481,8 @@
       
 
       
-        <ul class="sidebar-nav motion-element">
-          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
-            文章目录
-          </li>
-          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
-            站点概览
-          </li>
-        </ul>
-      
 
-      <section class="site-overview-wrap sidebar-panel">
+      <section class="site-overview-wrap sidebar-panel sidebar-panel-active">
         <div class="site-overview">
           <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
             
@@ -642,22 +533,6 @@
         </div>
       </section>
 
-      
-      <!--noindex-->
-        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
-          <div class="post-toc">
-
-            
-              
-            
-
-            
-              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-4"><a class="nav-link" href="#第一次测试"><span class="nav-number">1.</span> <span class="nav-text">第一次测试</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#第二次测试"><span class="nav-number">2.</span> <span class="nav-text">第二次测试</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#第三次测试"><span class="nav-number">3.</span> <span class="nav-text">第三次测试</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#小结"><span class="nav-number">4.</span> <span class="nav-text">小结</span></a></li></ol></div>
-            
-
-          </div>
-        </section>
-      <!--/noindex-->
       
 
       
